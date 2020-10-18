@@ -1,0 +1,89 @@
+#include stdio.h
+#include stdlib.h
+#include errno.h
+#include string.h
+#include sys/types.h
+#include netinet/in.h
+#include sys/socket.h
+#include sys/wait.h
+
+#define MYPORT 23456
+#define BACKLOG 10
+
+    main()
+    {
+        int 			sockfd, new_fd;  <font color="#B22222">/* listen on sock_fd, new connection on new_fd */</font>
+        <font color="#4169E1">struct</font> 	sockaddr_in 	my_addr;    <font color="#B22222">/* my address information */</font>
+        <font color="#4169E1">struct</font> 	sockaddr_in 	their_addr; <font color="#B22222">/* connector's address information */</font>
+        int 			sin_size;
+	char			string_read[255];
+	int 			n,i;
+	int			last_fd;	<font color="#B22222">/* Thelast sockfd that is connected	*/</font>
+
+        <font color="#4169E1">if</font> ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+            perror(<font color="#666666">"socket"</font>);
+            exit(1);
+        }
+	
+	last_fd = sockfd;
+
+        my_addr.sin_family = AF_INET;         <font color="#B22222">/* host byte order */</font>
+        my_addr.sin_port = htons(MYPORT);     <font color="#B22222">/* short, network byte order */</font>
+        my_addr.sin_addr.s_addr = INADDR_ANY; <font color="#B22222">/* auto-fill with my IP */</font>
+        bzero(&amp;(my_addr.sin_zero), 8);        <font color="#B22222">/* zero the rest of the struct */</font>
+
+        <font color="#4169E1">if</font> (bind(sockfd, (<font color="#4169E1">struct sockaddr</font> *)&amp;my_addr, <font color="#4169E1">sizeof</font>(<font color="#4169E1">struct sockaddr</font>)) \
+                                                                      == -1) {
+            perror(<font color="#666666">"bind"</font>);
+            exit(1);
+        }
+
+        <font color="#4169E1">if</font> (listen(sockfd, BACKLOG) == -1) {
+            perror(<font color="#666666">"listen"</font>);
+            exit(1);
+        }
+
+      	<font color="#4169E1">if</font> ((new_fd = accept(sockfd, (<font color="#4169E1">struct sockaddr</font> *)&amp;their_addr, \
+       			&amp;sin_size)) == -1) {
+       		perror(<font color="#666666">"accept"</font>);
+        			}
+        fcntl(last_fd, F_SETFL, O_NONBLOCK); <font color="#B22222">/* Change the socket into non-blocking state	*/</font>
+        fcntl(new_fd, F_SETFL, O_NONBLOCK); <font color="#B22222">/* Change the socket into non-blocking state	*/</font>
+
+	<font color="#4169E1">while</font>(1){
+		<font color="#4169E1">for</font> (i=sockfd;i&lt;=last_fd;i++){
+			printf(<font color="#666666">"Round number %d\n"</font>,i);
+       			<font color="#4169E1">if</font> (i = sockfd){
+		 		sin_size = <font color="#4169E1">sizeof</font>(<font color="#4169E1">struct sockaddr_in</font>);
+        			<font color="#4169E1">if</font> ((new_fd = accept(sockfd, (<font color="#4169E1">struct sockaddr</font> *)&amp;their_addr, \
+        					&amp;sin_size)) == -1) {
+        				perror(<font color="#666666">"accept"</font>);
+        			}
+         			printf(<font color="#666666">"server: got connection from %s\n"</font>, \
+					 inet_ntoa(their_addr.sin_addr)); 
+    	    			fcntl(new_fd, F_SETFL, O_NONBLOCK);
+				last_fd = new_fd;
+			}
+			<font color="#4169E1">else</font>{
+	    			n=recv(new_fd,string_read,<font color="#4169E1">sizeof</font>(string_read),0);
+				<font color="#4169E1">if</font> (n &lt; 1){ 
+					perror(<font color="#666666">"recv - non blocking \n"</font>);
+	    				printf(<font color="#666666">"Round %d, and the data read size is: n=%d \n"</font>,i,n);
+				}
+				<font color="#4169E1">else</font>{
+			        	string_read[n] = '\0';
+	    				printf(<font color="#666666">"The string is: %s \n"</font>,string_read);
+            				<font color="#4169E1">if</font> (send(new_fd, <font color="#666666">"Hello, world!\n"</font>, 14, 0) == -1)
+                				perror(<font color="#666666">"send"</font>);
+				}
+	    		}
+		}
+	}
+
+        
+    }
+
+</pre>
+</body>
+
+</html>
