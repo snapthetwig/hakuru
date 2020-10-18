@@ -18,9 +18,8 @@ struct Session {
 	struct Session* next = NULL;
 
 	struct timeval lastTransactionTime;
-
-	std::string clientId;
 	struct Client* client = NULL;
+
 	unsigned long sessionId;
 	struct sockaddr_in sessionAddress;
 };
@@ -51,6 +50,7 @@ struct Params {
 	std::string clientKey;
 	unsigned long sessionId;
 	std::string event;
+	unsigned int sessionKey;
 } currentParams;
 
 //////

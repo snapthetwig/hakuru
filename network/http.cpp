@@ -31,6 +31,9 @@ void splitKeyValue(std::string passedString) {
 		if (returnKeyValue.key.compare("session") == 0) {
 			currentParams.sessionId = std::stol(returnKeyValue.value);
 		}
+		if (returnKeyValue.key.compare("sessionkey") == 0) {
+			currentParams.sessionKey = std::stol(returnKeyValue.value);
+		}
 		if (returnKeyValue.key.compare("event") == 0) {
 			currentParams.event = returnKeyValue.value;
 		}
@@ -40,6 +43,12 @@ void splitKeyValue(std::string passedString) {
 }
 
 bool storeEvent() {
+
+	struct Session* thisSession;
+
+	thisSession = 
+	return true;
+
 }
 
 void handleRequest (std::string* passedString) {
@@ -132,10 +141,12 @@ void interpretHttp (std::string* passedString) {
 
 				} else {
 
-					if ((! currentParams.clientId.empty()) && currentParams.sessionId <= 0 && (! currentParams.event.empty())) {
+					if ((! currentParams.clientId.empty()) && currentParams.sessionId > 0 && (! currentParams.event.empty()) && currentParams.sessionKey > 0) {
 
 						if (storeEvent()) {
 							sendToSocket(storedString);
+						} else {
+							sendToSocket(errorString);
 						}
 
 					}
