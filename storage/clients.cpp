@@ -45,6 +45,32 @@ struct Client* clientExists(std::string* passedId, std::string* passedKey) {
 
 }
 
+struct Session* getSession(struct Client* passedClient, unsigned long passedSessionId) {
+
+	bool exhausted = false;
+	if (passedClient->session == NULL) {
+		return NULL;
+	}
+
+	passedClient->session = passedClient->session->start;
+	while (! exhausted) {
+
+		if (passedClient->session->sessionId == passedSessionId) {
+			return passedClient->session;
+		}
+		if (passedClient->session->next == NULL) {
+			exhausted = true;
+		} else {
+			passedClient->session = passedClient->session->next;
+		}
+		std::cout << "s\n";
+
+	}
+
+	return NULL;
+	
+}
+
 struct Client* addClient(std::string* passedId, std::string* passedKey) {
 	if (currentClient == NULL) {
 		currentClient = new Client;
@@ -83,13 +109,14 @@ struct Session* addSession(struct Client* passedClient) {
 	}
 
 	passedClient->session->start->prev = passedClient->session;
+	passedClient->session->client = passedClient;
 
 	return passedClient->session;
 	
 }
 
 
-bool verifyClient() {
+struct Client* verifyClient() {
 	struct Session* newSession = NULL;
 	struct Client* tempClient = NULL;
 	bool verified = false;
@@ -97,12 +124,11 @@ bool verifyClient() {
 	tempClient = clientExists(&(currentParams.clientId), &(currentParams.clientKey));
 	if (tempClient != NULL) {
 		newSession = addSession(tempClient);
-		verified = true;
 	} else {
 
 		std::string clientFilePath = dataPath + "clients/key/" + currentParams.clientId;
 		if (! std::filesystem::exists(clientFilePath)) {
-			return false;
+			return NULL;
 		}
 	
 		std::ifstream clientFile(clientFilePath);
@@ -118,7 +144,7 @@ bool verifyClient() {
 			}
 			clientFile.close();
 		} else {
-			return false;
+			return NULL;
 		}
 
 	}
@@ -129,7 +155,7 @@ bool verifyClient() {
 		sendToSocket("Error");
 	}
 
-	return verified;
+	return tempClient;
 
 }
 

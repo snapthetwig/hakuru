@@ -50,7 +50,6 @@ struct Params {
 	std::string clientKey;
 	unsigned long sessionId;
 	std::string event;
-	unsigned int sessionKey;
 } currentParams;
 
 //////

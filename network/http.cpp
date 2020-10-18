@@ -31,9 +31,6 @@ void splitKeyValue(std::string passedString) {
 		if (returnKeyValue.key.compare("session") == 0) {
 			currentParams.sessionId = std::stol(returnKeyValue.value);
 		}
-		if (returnKeyValue.key.compare("sessionkey") == 0) {
-			currentParams.sessionKey = std::stol(returnKeyValue.value);
-		}
 		if (returnKeyValue.key.compare("event") == 0) {
 			currentParams.event = returnKeyValue.value;
 		}
@@ -42,11 +39,29 @@ void splitKeyValue(std::string passedString) {
 
 }
 
+struct Storage {
+	struct Client* client = NULL;
+	struct Session* session = NULL;
+
+} *eventStore;
+
 bool storeEvent() {
 
+	struct Client* thisClient;
 	struct Session* thisSession;
 
-	thisSession = 
+	thisClient = clientExists(&(currentParams.clientId), &(currentParams.clientKey));
+	if (thisClient == NULL) {
+		return false;
+	}
+
+	thisSession = getSession(thisClient, currentParams.sessionId);
+	if (thisSession == NULL) {
+		thisSession = addSession(thisClient);
+	}
+
+
+	
 	return true;
 
 }
@@ -133,21 +148,19 @@ void interpretHttp (std::string* passedString) {
 				chomp(&query);
 				handleRequest(&query);
 
-				if ((! currentParams.clientId.empty()) && (! currentParams.clientKey.empty())) {
+				struct Client* tempClient;
 
-					if (verifyClient()) {
+				if ((! currentParams.clientId.empty()) && currentParams.sessionId > 0 && (! currentParams.event.empty()) && (! currentParams.clientKey.empty())) {
+
+					tempClient = verifyClient();
+
+					if (tempClient == NULL) {
+
+						sendToSocket(errorString);
+
 					} else {
-					}
 
-				} else {
-
-					if ((! currentParams.clientId.empty()) && currentParams.sessionId > 0 && (! currentParams.event.empty()) && currentParams.sessionKey > 0) {
-
-						if (storeEvent()) {
-							sendToSocket(storedString);
-						} else {
-							sendToSocket(errorString);
-						}
+						storeEvent();
 
 					}
 
