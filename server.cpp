@@ -27,6 +27,7 @@
 
 #include "misc.cpp"
 
+#include "storage/events.cpp"
 #include "storage/clients.cpp"
 
 #include "network/http.cpp"

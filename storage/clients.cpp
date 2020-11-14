@@ -128,6 +128,7 @@ struct Client* verifyClient() {
 
 		std::string clientFilePath = dataPath + "clients/key/" + currentParams.clientId;
 		if (! std::filesystem::exists(clientFilePath)) {
+			sendToSocket("Error\n");
 			return NULL;
 		}
 	
@@ -144,6 +145,7 @@ struct Client* verifyClient() {
 			}
 			clientFile.close();
 		} else {
+			sendToSocket("Error\n");
 			return NULL;
 		}
 
@@ -152,7 +154,7 @@ struct Client* verifyClient() {
 	if (newSession != NULL) {
 		sendToSocket("{\n\t\"Session\":" + toString(newSession->sessionId) + "\n}");
 	} else {
-		sendToSocket("Error");
+		sendToSocket("Error\n");
 	}
 
 	return tempClient;

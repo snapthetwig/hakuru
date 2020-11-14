@@ -47,12 +47,16 @@ struct Storage {
 
 bool storeEvent() {
 
+	bool stored = true;
+
 	struct Client* thisClient;
 	struct Session* thisSession;
 
+	pid_t pid;
+
 	thisClient = clientExists(&(currentParams.clientId), &(currentParams.clientKey));
 	if (thisClient == NULL) {
-		return false;
+		stored = false;
 	}
 
 	thisSession = getSession(thisClient, currentParams.sessionId);
@@ -60,7 +64,20 @@ bool storeEvent() {
 		thisSession = addSession(thisClient);
 	}
 
+	if (pid = fork(); pid == 0) {
 
+	} else {
+
+		persistEvents(thisClient, thisSession);
+		exit(0);
+
+	}
+
+	if (stored) {
+		sendToSocket("{\n\t\"Session\":" + toString(thisSession->sessionId) + "\n}");
+	} else {
+		sendToSocket("Error\n");
+	}
 	
 	return true;
 
@@ -70,7 +87,7 @@ void handleRequest (std::string* passedString) {
 
 	int foundCount = 0;
 	int currentPosition = 0, previousPosition = -1;
-	bool found = true; 
+	bool found = true;
 	struct KeyValue returned;
 
 	std::cout << "handleRequest \n";
